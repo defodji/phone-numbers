@@ -1,0 +1,183 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Customers phone numbers API",
+    "description": "Manage customers phone numbers",
+    "contact": {
+      "email": "defodji@gmail.com"
+    },
+    "license": {
+      "name": "Apache 2.0",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+    },
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://virtserver.swaggerhub.com/defodji/customer-phones/1.0.0",
+      "description": "SwaggerHub API Auto Mocking"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Portal",
+      "description": "Available on company portal"
+    },
+    {
+      "name": "Marketing",
+      "description": "Operation available for marketing"
+    }
+  ],
+  "paths": {
+    "/v1/phonenumbers": {
+      "get": {
+        "tags": [
+          "Marketing",
+          "Portal"
+        ],
+        "summary": "return all the phone numbers matching the criteria",
+        "description": "Returns all the phone numbers of all the customers\n",
+        "operationId": "listPhoneNumbers",
+        "parameters": [
+          {
+            "name": "customerId",
+            "in": "query",
+            "description": "Customer which phone numbers are searched - all if null",
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "list of all phone numbers matching the criteria",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PhoneNumber"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/schemas/ApiError"
+          },
+          "500": {
+            "$ref": "#/components/schemas/ApiError"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Portal"
+        ],
+        "summary": "activate a phone number",
+        "description": "Activates a phone number for a customer",
+        "operationId": "activatePhoneNumber",
+        "requestBody": {
+          "description": "phone number activated",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActivationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "phone number activated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PhoneNumber"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/schemas/ApiError"
+          },
+          "409": {
+            "$ref": "#/components/schemas/ApiError"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "PhoneNumber": {
+        "required": [
+          "number"
+        ],
+        "type": "object",
+        "properties": {
+          "number": {
+            "pattern": "^0\\d{9}$",
+            "type": "string",
+            "example": "0212345678"
+          },
+          "customer": {
+            "$ref": "#/components/schemas/Customer"
+          }
+        }
+      },
+      "ActivationRequest": {
+        "required": [
+          "number",
+          "customerId"
+        ],
+        "type": "object",
+        "properties": {
+          "number": {
+            "pattern": "^0\\d{9}$",
+            "type": "string",
+            "example": "0212345678"
+          },
+          "customerId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "Customer": {
+        "required": [
+          "id"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "example": "d290f1ee-6c54-4b01-90e6-d701748f0851"
+          },
+          "name": {
+            "type": "string",
+            "example": "John Doe"
+          }
+        }
+      },
+      "ApiError": {
+        "required": [
+          "errorId",
+          "message"
+        ],
+        "properties": {
+          "errorId": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

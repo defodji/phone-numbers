@@ -1,0 +1,89 @@
+buildscript {
+	ext {
+		openApiOutDir=project.buildDir.toString() + "/generated-openapi/"
+	}
+	dependencies {
+		classpath "org.openapitools:openapi-generator-gradle-plugin:5.2.0"
+	}
+}
+
+plugins {
+	id 'org.springframework.boot' version '2.5.3'
+	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+	id 'java'
+	id 'jacoco'
+}
+apply plugin: 'org.openapi.generator'
+
+group = 'au.com.belong'
+version = '0.0.1'
+sourceCompatibility = '11'
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'io.springfox:springfox-swagger2:2.9.2'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	compileOnly 'org.projectlombok:lombok'
+	compileOnly 'org.openapitools:jackson-databind-nullable:0.2.1'
+	annotationProcessor 'org.projectlombok:lombok'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'io.rest-assured:rest-assured:3.3.0'
+}
+
+sourceSets {
+	main {
+		java {
+			srcDirs += openApiOutDir + '/src/main/java'
+		}
+	}
+}
+
+compileJava.dependsOn ('generatePhoneNumbersApi')
+
+task generatePhoneNumbersApi(type: org.openapitools.generator.gradle.plugin.tasks.GenerateTask) {
+	generatorName = "spring"
+	inputSpec = "./src/main/api/customer-phones-1.0.0.json".toString()
+	outputDir = openApiOutDir
+	apiPackage = "au.com.belong.phonenumbers.api"
+	modelPackage = "au.com.belong.phonenumbers.models"
+	configOptions = [
+			dateLibrary: "java11",
+			interfaceOnly: "true"
+	]
+	mkdir openApiOutDir
+	library = "spring-boot"
+}
+
+jacoco {
+	toolVersion = "0.8.7"
+	reportsDirectory = layout.buildDirectory.dir('jacoco')
+}
+
+jacocoTestReport {
+	dependsOn test
+	afterEvaluate {
+		classDirectories.setFrom(files(classDirectories.files.collect {
+			fileTree(dir: it, exclude: [
+					"**/models/*.class",
+					"**/api/*.class",
+					"**/*Application.class"
+			])
+		}))
+	}
+}
+
+
+test {
+	useJUnitPlatform()
+	finalizedBy jacocoTestReport // report is always generated after tests run
+}
